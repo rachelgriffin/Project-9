@@ -1,1 +1,27 @@
 //model the player bucket that catches ball/ moves around 
+class Bucket {
+
+    /** Fields/ variables */
+    field int x; //top left x coordinate of bucket
+    field int y; //top left y coordinate
+    field int w; //width coordinate 
+    field int h; //height coordinate 
+    field int speed; //movement speed ie pixels per frame
+
+/** parameters */
+
+* @param px - x position
+* @param py - y position 
+* @param pw - width
+* @param ph - height
+* @param speed - movement speed per frame
+
+
+*/
+
+
+
+
+
+
+}
