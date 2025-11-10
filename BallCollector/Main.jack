@@ -1,0 +1,6 @@
+class Main {
+   function void main() {
+    // main code segment runs the game      
+      return;
+   }
+}
