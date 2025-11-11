@@ -1,0 +1,279 @@
+function FallingBall.new 0
+    push constant 9
+    call Memory.alloc 1
+    pop pointer 0
+    push constant 6
+    pop this 2
+    push argument 0
+    pop this 4
+    push argument 1
+    push this 2
+    push constant 1
+    sub
+    sub
+    pop this 5
+    push argument 2
+    pop this 6
+    push argument 3
+    push this 2
+    push constant 1
+    sub
+    sub
+    pop this 7
+    push constant 4
+    pop this 3
+    push constant 0
+    pop this 8
+    push pointer 0
+    return
+function FallingBall.isAlive 0
+    push argument 0
+    pop pointer 0
+    push this 8
+    return
+function FallingBall.draw 0
+    push argument 0
+    pop pointer 0
+    push constant 1
+    neg
+    call Screen.setColor 1
+    pop temp 0
+    push this 0
+    push this 1
+    push this 0
+    push this 2
+    add
+    push constant 1
+    sub
+    push this 1
+    push this 2
+    add
+    push constant 1
+    sub
+    call Screen.drawRectangle 4
+    pop temp 0
+    push constant 0
+    return
+function FallingBall.erase 0
+    push argument 0
+    pop pointer 0
+    push constant 0
+    call Screen.setColor 1
+    pop temp 0
+    push this 0
+    push this 1
+    push this 0
+    push this 2
+    add
+    push constant 1
+    sub
+    push this 1
+    push this 2
+    add
+    push constant 1
+    sub
+    call Screen.drawRectangle 4
+    pop temp 0
+    push constant 1
+    neg
+    call Screen.setColor 1
+    pop temp 0
+    push constant 0
+    return
+function FallingBall.mod 2
+    push argument 0
+    pop pointer 0
+    push argument 1
+    push argument 2
+    call Math.divide 2
+    pop local 0
+    push argument 1
+    push local 0
+    push argument 2
+    call Math.multiply 2
+    sub
+    pop local 1
+    push local 1
+    return
+function FallingBall.spawn 5
+    push argument 0
+    pop pointer 0
+    push this 5
+    push this 4
+    sub
+    pop local 0
+    push constant 6
+    pop local 2
+    push local 0
+    push constant 6
+    lt
+    not
+    if-goto FallingBall_1
+    push constant 1
+    pop local 2
+    goto FallingBall_0
+label FallingBall_1
+label FallingBall_0
+    push local 0
+    push local 2
+    call Math.divide 2
+    pop local 1
+    push local 1
+    push constant 1
+    lt
+    not
+    if-goto FallingBall_3
+    push constant 1
+    pop local 1
+    goto FallingBall_2
+label FallingBall_3
+label FallingBall_2
+    push pointer 0
+    push argument 1
+    push local 2
+    call FallingBall.mod 3
+    pop local 3
+    push this 4
+    push local 3
+    push local 1
+    call Math.multiply 2
+    add
+    pop local 4
+    push local 4
+    push this 5
+    gt
+    not
+    if-goto FallingBall_5
+    push this 5
+    pop local 4
+    goto FallingBall_4
+label FallingBall_5
+label FallingBall_4
+    push local 4
+    pop this 0
+    push this 6
+    pop this 1
+    push constant 4
+    push pointer 0
+    push argument 1
+    push constant 3
+    call FallingBall.mod 3
+    add
+    pop this 3
+    push constant 1
+    neg
+    pop this 8
+    push pointer 0
+    call FallingBall.draw 1
+    pop temp 0
+    push constant 0
+    return
+function FallingBall.tick 0
+    push argument 0
+    pop pointer 0
+    push this 8
+    not
+    not
+    if-goto FallingBall_7
+    push constant 0
+    return
+    goto FallingBall_6
+label FallingBall_7
+label FallingBall_6
+    push pointer 0
+    call FallingBall.erase 1
+    pop temp 0
+    push this 1
+    push this 3
+    add
+    pop this 1
+    push this 1
+    push this 7
+    gt
+    not
+    if-goto FallingBall_9
+    push constant 0
+    pop this 8
+    push constant 0
+    return
+    goto FallingBall_8
+label FallingBall_9
+label FallingBall_8
+    push pointer 0
+    call FallingBall.draw 1
+    pop temp 0
+    push constant 0
+    return
+function FallingBall.checkCatch 9
+    push argument 0
+    pop pointer 0
+    push this 8
+    not
+    not
+    if-goto FallingBall_11
+    push constant 0
+    return
+    goto FallingBall_10
+label FallingBall_11
+label FallingBall_10
+    push this 0
+    pop local 1
+    push this 0
+    push this 2
+    add
+    push constant 1
+    sub
+    pop local 2
+    push argument 1
+    call Bucket.left 1
+    pop local 3
+    push argument 1
+    call Bucket.right 1
+    pop local 4
+    push this 1
+    pop local 5
+    push this 1
+    push this 2
+    add
+    push constant 1
+    sub
+    pop local 6
+    push argument 1
+    call Bucket.top 1
+    pop local 7
+    push argument 1
+    call Bucket.bot 1
+    pop local 8
+    push local 2
+    push local 3
+    lt
+    push local 4
+    push local 1
+    lt
+    or
+    push local 6
+    push local 7
+    lt
+    or
+    push local 8
+    push local 5
+    lt
+    or
+    pop local 0
+    push local 0
+    not
+    not
+    if-goto FallingBall_13
+    push pointer 0
+    call FallingBall.erase 1
+    pop temp 0
+    push constant 0
+    pop this 8
+    push constant 1
+    neg
+    return
+    goto FallingBall_12
+label FallingBall_13
+label FallingBall_12
+    push constant 0
+    return

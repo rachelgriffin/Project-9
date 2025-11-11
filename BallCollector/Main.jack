@@ -1,104 +1,70 @@
-/** Bucket + FallingBall test harness (heap-safe HUD) */
+/** Bucket + FallingBall test harness with continuous spawn + faster controls */
 class Main {
-
     function void main() {
         var Bucket b;
         var FallingBall fb;
         var char key;
         var int score, seed, cooldown;
-        var int SCORE_COL;   // HUD column where score number starts
+        var int SCORE_COL;
 
         // ---- setup ----
         do Screen.clearScreen();
 
-        let b = Bucket.new(230, 230, 40);   // x, y, width (h=8 inside class)
+        let b = Bucket.new(230, 230, 40);   // x, y, width
         do b.draw();
 
-        // Create ball with full walls; class subtracts 6 internally
-        let fb = FallingBall.new(0, 511, 0, 255);
+        let fb = FallingBall.new(0, 255, 0, 255);
 
         let score = 0;
         let seed = 1234;
         let cooldown = 0;
 
-        // print static HUD once (create the String ONCE)
-        do Output.moveCursor(0, 0);  // row 0, col 0
-        do Output.printString("Arrows move, Q/q quits. Score: ");
-        let SCORE_COL = 29;          // column where number begins
+        // HUD: "Score:" label once
+        let SCORE_COL = 2;
+        do Output.moveCursor(0, SCORE_COL);
+        do Output.printString("Score: ");
+        do Output.moveCursor(0, SCORE_COL + 7);
+        do Output.printInt(0);
 
-        // initial spawn
-        let seed = Main.next(seed);
-        do fb.reset(Main.randX(seed), -6, 2);   // y = -6 for a nice drop-in
+        // first ball
+        do fb.spawn(seed);
+        let seed = seed + 1;
 
-
-        // ---- game loop ----
+        // ---- main loop ----
         while (true) {
-            // --- input ---
+            // input
             let key = Keyboard.keyPressed();
-            if ( (key = 81) | (key = 113) ) { return; }  // Q or q
+             // --- add this exactly here ---
+            if (key = 113) { do Sys.halt(); }   // 'q' to quit (ASCII 113)
+            if (key = 130) { do b.moveLeft();  }  // Left
+            if (key = 132) { do b.moveRight(); }  // Right
+            if (key = 131) { do b.moveUp();    }  // Up (optional)
+            if (key = 133) { do b.moveDown();  }  // Down (optional)
 
-            if (key = 130) { do b.moveLeft();  }   // Left
-            if (key = 132) { do b.moveRight(); }   // Right
-            if (key = 131) { do b.moveUp();    }   // Up
-            if (key = 133) { do b.moveDown();  }   // Down
+            // advance ball
+            do fb.tick();
 
-            // --- update ---
-            if (fb.isAlive()) {
-                do fb.update();
-
-                // caught?
-                if (fb.overlapsBucket(b)) {
-                    let score = score + 1;
-                    do fb.deactivate();
-                    let cooldown = 20;            // small delay before next spawn
-                }
-
-                // missed?
-                if (fb.offBottom()) {
-                    do fb.deactivate();
-                    let cooldown = 20;
-                }
-            } else {
-                if (cooldown > 0) { let cooldown = cooldown - 1; }
-                if (cooldown = 0) {
-                    let seed = Main.next(seed);
-                    do fb.reset(Main.randX(seed), 0, 1 + Main.mod(seed, 3)); // speed 1..3
-                }
+            // catch → score + cooldown
+            if (fb.checkCatch(b)) {
+                let score = score + 1;
+                do Output.moveCursor(0, SCORE_COL + 7);
+                do Output.printInt(score);
+                let cooldown = 8;
             }
 
-            // --- draw frame ---
-            do Screen.clearScreen();
-            do b.draw();
-            if (fb.isAlive()) { do fb.draw(); }
+            // respawn when gone and cooldown finished
+            if ((~(fb.isAlive())) & (cooldown = 0)) {
+                do fb.spawn(seed);
+                let seed = seed + 1;
+            }
 
-            // update only the score number (no new Strings each frame)
-            do Output.moveCursor(0, SCORE_COL);  // row 0, column SCORE_COL
-            do Output.printInt(score);
-            // pad two spaces so old digits don't linger
-            do Output.printChar(32);
-            do Output.printChar(32);
+            // cooldown tick
+            if (cooldown > 0) {
+                let cooldown = cooldown - 1;
+            }
 
-            do Sys.wait(16);  // ~60 FPS feel
+            do Sys.wait(1);
         }
-
         return;
-    }
-
-    // ----- tiny RNG helpers -----
-    function int next(int s) {    // seed = seed*57 + 13
-        return (s * 57) + 13;
-    }
-
-    function int mod(int a, int m) {  // a % m  (m > 0)
-        var int q;
-        let q = a / m;
-        return a - q * m;
-    }
-
-    // choose an x in [4 .. 503] (6x6 ball fully visible)
-    function int randX(int s) {
-        var int span;
-        let span = (511 - 8) - 4 + 1;   // 500
-        return 4 + Main.mod(s, span);
     }
 }

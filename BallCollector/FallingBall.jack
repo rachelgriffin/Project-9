@@ -1,94 +1,100 @@
-// FallingBall.jack — safe straight-down 6x6 ball
+// FallingBall.jack — simple 6x6 falling square with lifecycle control
 class FallingBall {
-    field int x, y;
-    field int s;
-    field int vy;
-
-    field int leftWall, rightWall, topWall, bottomWall; // right/bottom already minus 6
+    field int x, y;           
+    field int s;              
+    field int vy;             
+    field int leftWall, rightWall, topWall, bottomWall; 
     field boolean alive;
 
     constructor FallingBall new(int AleftWall, int ArightWall, int AtopWall, int AbottomWall) {
-        let leftWall   = AleftWall;
-        let rightWall  = ArightWall  - 6;  // keep 6x6 fully on screen
-        let topWall    = AtopWall;
-        let bottomWall = AbottomWall - 6;
-
-        let x = 0;
-        let y = -100;
         let s = 6;
-        let vy = 0;
+        let leftWall   = AleftWall;
+        let rightWall  = ArightWall  - (s - 1);
+        let topWall    = AtopWall;
+        let bottomWall = AbottomWall - (s - 1);
+        let vy = 4;
         let alive = false;
         return this;
     }
 
-    // clamp helper: returns v clamped to [lo..hi]
-    function int clamp(int v, int lo, int hi) {
-        if (v < lo) { return lo; }
-        if (v > hi) { return hi; }
-        return v;
-    }
-
-    method void reset(int startX, int startY, int speed) {
-        let x  = FallingBall.clamp(startX, leftWall, rightWall);
-        let y  = FallingBall.clamp(startY, topWall, bottomWall);
-        let vy = speed;
-        let alive = true;
-        return;
-    }
-
-    method void deactivate() { let alive = false; return; }
     method boolean isAlive() { return alive; }
 
-    method void update() {
-        if (alive) {
-            let y = y + vy;
-            if (y < topWall) { let y = topWall; }
-            if (y > bottomWall) { let y = bottomWall; }
-        }
-        return;
-    }
-
     method void draw() {
-        var int x2, y2;
-        if (alive) {
-            let x2 = x + s;
-            let y2 = y + s;
-            if ( (x < 0) | (x2 > 511) | (y < 0) | (y2 > 255) ) { return; }
-            do Screen.drawRectangle(x, y, x2, y2);
-        }
+        do Screen.setColor(true);
+        do Screen.drawRectangle(x, y, x + s - 1, y + s - 1);
         return;
     }
 
-    method void hide() {
-        var int x2, y2;
-        if (alive) {
-            let x2 = x + s;
-            let y2 = y + s;
-            // (x >= 0) -> ~(x < 0); (x2 <= 511) -> x2 < 512; similar for y
-            if ( ~(x < 0) & (x2 < 512) & ~(y < 0) & (y2 < 256) ) {
-                do Screen.setColor(false);
-                do Screen.drawRectangle(x, y, x2, y2);
-                do Screen.setColor(true);
-            }
-        }
+    method void erase() {
+        do Screen.setColor(false);
+        do Screen.drawRectangle(x, y, x + s - 1, y + s - 1);
+        do Screen.setColor(true);
         return;
     }
 
-    method boolean offBottom() { return (y > bottomWall) | (y = bottomWall); }
-
-    method boolean overlapsBucket(Bucket b) {
-        var boolean sep;
-        let sep =
-            ((x + s) < b.left()) |
-            (x > b.right()) |
-            ((y + s) < b.top()) |
-            (y > b.bot());
-        return ~sep;
+    method int mod(int a, int m) {
+        var int q, r;
+        let q = a / m;
+        let r = a - (q * m);
+        return r;
     }
 
-    method int left()   { return x; }
-    method int right()  { return x + s; }
-    method int top()    { return y; }
-    method int bottom() { return y + s; }
-    method int speed()  { return vy; }
+    method void spawn(int seed) {
+        var int range, step, slots, r, nx;
+        let range = (rightWall - leftWall);
+        let slots = 6;
+        if (range < 6) { let slots = 1; }
+        let step = range / slots;
+        if (step < 1) { let step = 1; }
+        let r = mod(seed, slots);
+
+        let nx = leftWall + (r * step);
+        if (nx > rightWall) { let nx = rightWall; }
+
+        let x = nx;
+        let y = topWall;
+        let vy = 4 + mod(seed, 3);    // 4..6
+        let alive = true;
+        do draw();
+        return;
+    }
+
+    method void tick() {
+        if (~alive) { return; }
+        do erase();
+        let y = y + vy;
+        if (y > bottomWall) {
+            let alive = false;
+            return;
+        }
+        do draw();
+        return;
+    }
+
+    /** Overlap test using only <, >, =, |, &, ~ (no <=, >=) */
+    method boolean checkCatch(Bucket b) {
+        var boolean sep;   // "separated"
+        var int ax1, ax2, bx1, bx2, ay1, ay2, by1, by2;
+
+        if (~alive) { return false; }
+
+        let ax1 = x;
+        let ax2 = x + s - 1;
+        let bx1 = b.left();
+        let bx2 = b.right();
+        let ay1 = y;
+        let ay2 = y + s - 1;
+        let by1 = b.top();
+        let by2 = b.bot();
+
+        // separated if one interval ends strictly before the other begins
+        let sep = (ax2 < bx1) | (bx2 < ax1) | (ay2 < by1) | (by2 < ay1);
+
+        if (~sep) {
+            do erase();
+            let alive = false;
+            return true;
+        }
+        return false;
+    }
 }

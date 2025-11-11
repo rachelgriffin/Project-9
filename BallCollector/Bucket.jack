@@ -1,32 +1,30 @@
-// Bucket.jack — simple rectangle you can move with arrow keys.
+// Bucket.jack — rectangle the player moves with arrows
 class Bucket {
     field int x, y, w, h, spd;
 
-    /** Create a bucket at (px,py) with width pw; height is fixed (8). */
+    /** Create a bucket at (px,py) with width pw; height fixed at 8. */
     constructor Bucket new(int px, int py, int pw) {
         let x = px;
         let y = py;
         let w = pw;
         let h = 8;
-        let spd = 8;
+        let spd = 16; // faster movement so it feels responsive
         return this;
     }
 
-    /** Draw the bucket. */
+    /** Internal draw/erase helpers. */
     method void draw() {
-        do Screen.drawRectangle(x, y, x + w, y + h);
+        do Screen.setColor(true);
+        do Screen.drawRectangle(x, y, x + w - 1, y + h - 1);
         return;
     }
-
-    /** Erase the bucket (draw in background color). */
     method void erase() {
         do Screen.setColor(false);
-        do Screen.drawRectangle(x, y, x + w, y + h);
+        do Screen.drawRectangle(x, y, x + w - 1, y + h - 1);
         do Screen.setColor(true);
         return;
     }
 
-    /** Movement helpers (with clamping). */
     method void moveLeft() {
         do erase();
         let x = x - spd;
@@ -34,15 +32,13 @@ class Bucket {
         do draw();
         return;
     }
-
     method void moveRight() {
         do erase();
         let x = x + spd;
-        if (x + w > 511) { let x = 511 - w; }
+        if (x + w > 255) { let x = 255 - w + 1; }
         do draw();
         return;
     }
-
     method void moveUp() {
         do erase();
         let y = y - spd;
@@ -50,18 +46,17 @@ class Bucket {
         do draw();
         return;
     }
-
     method void moveDown() {
         do erase();
         let y = y + spd;
-        if (y + h > 255) { let y = 255 - h; }
+        if (y + h > 255) { let y = 255 - h + 1; }
         do draw();
         return;
     }
 
-    // getters (useful later)
+    // getters for collision
     method int left()  { return x; }
-    method int right() { return x + w; }
+    method int right() { return x + w - 1; }
     method int top()   { return y; }
-    method int bot()   { return y + h; }
+    method int bot()   { return y + h - 1; }
 }
