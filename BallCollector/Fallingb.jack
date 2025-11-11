@@ -13,6 +13,8 @@ class Faller {
         return this;
     }
 
-    method 
+    method void reset(int rx, int ry, int rvy, int size) {
+        
+    }
 
 }
