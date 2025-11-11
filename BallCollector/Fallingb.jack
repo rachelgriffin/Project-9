@@ -1,1 +1,18 @@
 // falling squares going into bucket from top of screen 
+
+class Faller {
+    field int x, y, vertical_speed, size;
+    field boolean isAlive; // false = available for spawning
+
+    constructor FallBall new() {
+        let x = 0;
+        let y = 0;
+        let vertical_speed = 0;
+        let speed = 0;
+        let isAlive = false;
+        return this;
+    }
+
+    method 
+
+}
