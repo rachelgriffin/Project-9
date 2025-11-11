@@ -1,43 +1,104 @@
-
-    /** Simple test harness for the Bucket class */
+/** Bucket + FallingBall test harness (heap-safe HUD) */
 class Main {
 
-   function void main() {
-      var Bucket b;
-      var char key;
+    function void main() {
+        var Bucket b;
+        var FallingBall fb;
+        var char key;
+        var int score, seed, cooldown;
+        var int SCORE_COL;   // HUD column where score number starts
 
-      // Clear the screen and create a new bucket
-      do Screen.clearScreen();
-      let b = Bucket.new(230, 230, 40);  // (x, y, width)
-      
-      // Instruction message
-      do Screen.printString("Use arrow keys to move, 'q' to quit.");
-      do Screen.printNewline();
+        // ---- setup ----
+        do Screen.clearScreen();
 
-      // Main control loop
-      while (true) {
-         let key = Keyboard.keyPressed();
+        let b = Bucket.new(230, 230, 40);   // x, y, width (h=8 inside class)
+        do b.draw();
 
-         if (key = 81) { // 'q' key ASCII code
-            do b.erase();
-            return;
-         }
-         else if (key = 130) { // left arrow
-            do b.moveLeft();
-         }
-         else if (key = 131) { // up arrow
-            do b.moveUp();
-         }
-         else if (key = 132) { // right arrow
-            do b.moveRight();
-         }
-         else if (key = 133) { // down arrow
-            do b.moveDown();
-         }
+        // Create ball with full walls; class subtracts 6 internally
+        let fb = FallingBall.new(0, 511, 0, 255);
 
-         do Sys.wait(5); // small delay for smooth control
-      }
+        let score = 0;
+        let seed = 1234;
+        let cooldown = 0;
 
-      return;
-   }
+        // print static HUD once (create the String ONCE)
+        do Output.moveCursor(0, 0);  // row 0, col 0
+        do Output.printString("Arrows move, Q/q quits. Score: ");
+        let SCORE_COL = 29;          // column where number begins
+
+        // initial spawn
+        let seed = Main.next(seed);
+        do fb.reset(Main.randX(seed), -6, 2);   // y = -6 for a nice drop-in
+
+
+        // ---- game loop ----
+        while (true) {
+            // --- input ---
+            let key = Keyboard.keyPressed();
+            if ( (key = 81) | (key = 113) ) { return; }  // Q or q
+
+            if (key = 130) { do b.moveLeft();  }   // Left
+            if (key = 132) { do b.moveRight(); }   // Right
+            if (key = 131) { do b.moveUp();    }   // Up
+            if (key = 133) { do b.moveDown();  }   // Down
+
+            // --- update ---
+            if (fb.isAlive()) {
+                do fb.update();
+
+                // caught?
+                if (fb.overlapsBucket(b)) {
+                    let score = score + 1;
+                    do fb.deactivate();
+                    let cooldown = 20;            // small delay before next spawn
+                }
+
+                // missed?
+                if (fb.offBottom()) {
+                    do fb.deactivate();
+                    let cooldown = 20;
+                }
+            } else {
+                if (cooldown > 0) { let cooldown = cooldown - 1; }
+                if (cooldown = 0) {
+                    let seed = Main.next(seed);
+                    do fb.reset(Main.randX(seed), 0, 1 + Main.mod(seed, 3)); // speed 1..3
+                }
+            }
+
+            // --- draw frame ---
+            do Screen.clearScreen();
+            do b.draw();
+            if (fb.isAlive()) { do fb.draw(); }
+
+            // update only the score number (no new Strings each frame)
+            do Output.moveCursor(0, SCORE_COL);  // row 0, column SCORE_COL
+            do Output.printInt(score);
+            // pad two spaces so old digits don't linger
+            do Output.printChar(32);
+            do Output.printChar(32);
+
+            do Sys.wait(16);  // ~60 FPS feel
+        }
+
+        return;
+    }
+
+    // ----- tiny RNG helpers -----
+    function int next(int s) {    // seed = seed*57 + 13
+        return (s * 57) + 13;
+    }
+
+    function int mod(int a, int m) {  // a % m  (m > 0)
+        var int q;
+        let q = a / m;
+        return a - q * m;
+    }
+
+    // choose an x in [4 .. 503] (6x6 ball fully visible)
+    function int randX(int s) {
+        var int span;
+        let span = (511 - 8) - 4 + 1;   // 500
+        return 4 + Main.mod(s, span);
+    }
 }

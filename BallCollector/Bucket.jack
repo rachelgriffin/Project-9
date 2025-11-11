@@ -1,78 +1,67 @@
-//model the player bucket that catches ball/ moves around 
+// Bucket.jack — simple rectangle you can move with arrow keys.
 class Bucket {
-    /** Fields/ variables */
-    field int x; //top left x coordinate of bucket
-    field int y; //top left y coordinate
-    field int w; //width coordinate 
-    field int h; //height coordinate 
-    field int speed; //movement speed ie pixels per frame
+    field int x, y, w, h, spd;
 
-/** parameters */
+    /** Create a bucket at (px,py) with width pw; height is fixed (8). */
+    constructor Bucket new(int px, int py, int pw) {
+        let x = px;
+        let y = py;
+        let w = pw;
+        let h = 8;
+        let spd = 8;
+        return this;
+    }
 
-* @param px - x position
-* @param py - y position 
-* @param pw - width
-* @param ph - height
-* @param spd - movement speed per frame
+    /** Draw the bucket. */
+    method void draw() {
+        do Screen.drawRectangle(x, y, x + w, y + h);
+        return;
+    }
 
-*/
-constructor Bucket new(int ax, int ay, int aw, int ah, int as) {
-      let x = ax;
-      let y = ay;
-      let w = aw;
-      let h = ah;
-      let spd = as;
+    /** Erase the bucket (draw in background color). */
+    method void erase() {
+        do Screen.setColor(false);
+        do Screen.drawRectangle(x, y, x + w, y + h);
+        do Screen.setColor(true);
+        return;
+    }
 
-      do draw(); // draws on creation
-      return this;
-   }
-/** Erases this bucket (draws a white rectangle over it). */
-   method void erase() {
-      do Screen.setColor(false);
-      do Screen.drawRectangle(x, y, x + w, y + h);
-      return;
-   }
-  /** Draws this bucket (black rectangle). */
-   method void draw() {
-      do Screen.setColor(true);
-      do Screen.drawRectangle(x, y, x + w, y + h);
-      return;
-   }
-     /** Moves the bucket left by `spd` pixels (if possible). */
-   method void moveLeft() {
-      if (x > 0) {
-         do erase();
-         let x = x - spd;
-         if (x < 0) { let x = 0; } // clamp to screen
-         do draw();
-      }
-      return;
-   }
- /** Moves the bucket right by `spd` pixels (if possible). */
-   method void moveRight() {
-      if ((x + w) < 511) {
-         do erase();
-         let x = x + spd;
-         if (x + w > 511) { let x = 511 - w; }
-         do draw();
-      }
-      return;
-   }
-   /**
-    * Handles keyboard input.
-    * Key codes: Left=132, Right=133
-    * Just calls moveLeft() or moveRight().
-    */
-   method void update(char k) {
-      if (k = 132) { do moveLeft(); }
-      if (k = 133) { do moveRight(); }
-      return;
-   }
+    /** Movement helpers (with clamping). */
+    method void moveLeft() {
+        do erase();
+        let x = x - spd;
+        if (x < 0) { let x = 0; }
+        do draw();
+        return;
+    }
 
-   /** Getters for collision checks (used by Faller objects). */
-   method int left()  { return x; }
-   method int right() { return x + w; }
-   method int top()   { return y; }
-   method int bot()   { return y + h; }
+    method void moveRight() {
+        do erase();
+        let x = x + spd;
+        if (x + w > 511) { let x = 511 - w; }
+        do draw();
+        return;
+    }
+
+    method void moveUp() {
+        do erase();
+        let y = y - spd;
+        if (y < 0) { let y = 0; }
+        do draw();
+        return;
+    }
+
+    method void moveDown() {
+        do erase();
+        let y = y + spd;
+        if (y + h > 255) { let y = 255 - h; }
+        do draw();
+        return;
+    }
+
+    // getters (useful later)
+    method int left()  { return x; }
+    method int right() { return x + w; }
+    method int top()   { return y; }
+    method int bot()   { return y + h; }
 }
-
