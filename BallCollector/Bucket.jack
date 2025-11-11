@@ -1,6 +1,5 @@
 //model the player bucket that catches ball/ moves around 
 class Bucket {
-
     /** Fields/ variables */
     field int x; //top left x coordinate of bucket
     field int y; //top left y coordinate
@@ -14,14 +13,66 @@ class Bucket {
 * @param py - y position 
 * @param pw - width
 * @param ph - height
-* @param speed - movement speed per frame
-
+* @param spd - movement speed per frame
 
 */
+constructor Bucket new(int ax, int ay, int aw, int ah, int as) {
+      let x = ax;
+      let y = ay;
+      let w = aw;
+      let h = ah;
+      let spd = as;
 
+      do draw(); // draws on creation
+      return this;
+   }
+/** Erases this bucket (draws a white rectangle over it). */
+   method void erase() {
+      do Screen.setColor(false);
+      do Screen.drawRectangle(x, y, x + w, y + h);
+      return;
+   }
+  /** Draws this bucket (black rectangle). */
+   method void draw() {
+      do Screen.setColor(true);
+      do Screen.drawRectangle(x, y, x + w, y + h);
+      return;
+   }
+     /** Moves the bucket left by `spd` pixels (if possible). */
+   method void moveLeft() {
+      if (x > 0) {
+         do erase();
+         let x = x - spd;
+         if (x < 0) { let x = 0; } // clamp to screen
+         do draw();
+      }
+      return;
+   }
+ /** Moves the bucket right by `spd` pixels (if possible). */
+   method void moveRight() {
+      if ((x + w) < 511) {
+         do erase();
+         let x = x + spd;
+         if (x + w > 511) { let x = 511 - w; }
+         do draw();
+      }
+      return;
+   }
+   /**
+    * Handles keyboard input.
+    * Key codes: Left=132, Right=133
+    * Just calls moveLeft() or moveRight().
+    */
+   method void update(char k) {
+      if (k = 132) { do moveLeft(); }
+      if (k = 133) { do moveRight(); }
+      return;
+   }
 
-
-
-
-
+   /** Getters for collision checks (used by Faller objects). */
+   method int left()  { return x; }
+   method int right() { return x + w; }
+   method int top()   { return y; }
+   method int bot()   { return y + h; }
 }
+

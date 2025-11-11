@@ -1,6 +1,43 @@
+
+    /** Simple test harness for the Bucket class */
 class Main {
+
    function void main() {
-    // main code segment runs the game      
+      var Bucket b;
+      var char key;
+
+      // Clear the screen and create a new bucket
+      do Screen.clearScreen();
+      let b = Bucket.new(230, 230, 40);  // (x, y, width)
+      
+      // Instruction message
+      do Screen.printString("Use arrow keys to move, 'q' to quit.");
+      do Screen.printNewline();
+
+      // Main control loop
+      while (true) {
+         let key = Keyboard.keyPressed();
+
+         if (key = 81) { // 'q' key ASCII code
+            do b.erase();
+            return;
+         }
+         else if (key = 130) { // left arrow
+            do b.moveLeft();
+         }
+         else if (key = 131) { // up arrow
+            do b.moveUp();
+         }
+         else if (key = 132) { // right arrow
+            do b.moveRight();
+         }
+         else if (key = 133) { // down arrow
+            do b.moveDown();
+         }
+
+         do Sys.wait(5); // small delay for smooth control
+      }
+
       return;
    }
 }
